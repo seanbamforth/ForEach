@@ -1,9 +1,8 @@
 for_each
 ===================
 
-
-For Visual Dataflex
-By Sean Bamforth 
+ - For Visual Dataflex
+ - By Sean Bamforth 
 
 
 Usage:
@@ -36,7 +35,7 @@ To create your own for_each iterator, you need to do the following.
 
 1. Subclass cIterator. 
 Naming is impoortant. The text between "c" and "Iterator" will be the type. 
-So a type of "Range" will need a cRangeIterator 
+So a type of "Range" will need a cRangeIterator.
 ```
     Class cRangeIterator is a cIterator
     End_Class
@@ -85,10 +84,15 @@ We use DestroyObject Rarely, but we use it. (See cTextFileIterator)
         Forward Send Destroy_Object 
     End_Procedure
 ```
-3. Use it...
+
+3. Use it.
+
+
 ```
     integer iCount
     for_each Range iCount in 100 150 
         showln iCount 
     end_for_each 
 ```
+
+Fin.
