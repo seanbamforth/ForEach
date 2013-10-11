@@ -1,0 +1,4 @@
+#REPLACE FILE1 Test
+#REPLACE Test.Recnum |FN1,0
+#REPLACE Test.ID |FN1,1
+#REPLACE Test.Description |FS1,2

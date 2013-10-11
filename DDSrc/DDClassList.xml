@@ -1,0 +1,15 @@
+<DataDictionaryList xmlns="http://www.dataaccess.com/VisualDataFlex/2008/DataDictionaryList/">
+	<Tables>
+		<Table>
+			<tableNumber>1</tableNumber>
+			<tableName>Test</tableName>
+			<DDClasses>
+				<DDClass>
+					<className>cTestDataDictionary</className>
+					<classFile>cTestDataDictionary.dd</classFile>
+					<preferred>true</preferred>
+				</DDClass>
+			</DDClasses>
+		</Table>
+	</Tables>
+</DataDictionaryList>

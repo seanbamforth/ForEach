@@ -1,0 +1,331 @@
+// Sort of Open Source. 
+// Written by Sean Bamforth - 
+// email - sean@theguru.co.uk 
+
+Use Datadict.pkg
+
+Class cIterator is a cObject
+    Procedure construct_object 
+        Forward Send construct_object 
+    End_Procedure
+
+    Procedure InitialiseObject 
+    End_Procedure
+
+    Function NextItem Returns Boolean
+    End_Function 
+    
+    Function FirstItem Returns Boolean
+    End_Function 
+    
+    Function ItemValue Returns Variant
+    End_Function
+
+    Procedure Destroy_Object
+        Forward Send Destroy_Object 
+    End_Procedure
+End_Class
+
+Function CreateObject for cObject Integer hClass Variant v1 Variant v2 Variant v3 Variant v4 Returns Integer 
+    Integer hObj 
+    Integer iArgs 
+    Move Num_Arguments to iArgs 
+    
+    Move (Create(Self,hClass)) to hObj 
+
+    If (iArgs = 1) Send InitialiseObject to (hObj) 
+    If (iArgs = 2) Send InitialiseObject to (hObj) v1 
+    If (iArgs = 3) Send InitialiseObject to (hObj) v1 v2 
+    If (iArgs = 4) Send InitialiseObject to (hObj) v1 v2 v3 
+    If (iArgs = 5) Send InitialiseObject to (hObj) v1 v2 v3 v4 
+    
+    Function_Return hObj 
+End_Function
+
+#COMMAND for_each R R IN R 
+    #PUSH !u
+    #SET U$ !a
+    
+    Integer hNew_!u
+    Boolean isOK_!u
+    #IF (!0 = 4)
+        Get CreateObject U_c!1Iterator !4 to hNew_!u
+    #ENDIF 
+    #IF (!0 = 5)
+        Get CreateObject U_c!1Iterator !4 !5 to hNew_!u
+    #ENDIF 
+    #IF (!0 = 6)
+        Get CreateObject U_c!1Iterator !4 !5 !6 to hNew_!u
+    #ENDIF 
+
+    Get FirstItem of hNew_!u to isOK_!u
+    While (isOK_!u)
+        Get ItemValue of hNew_!u to !2
+#ENDCOMMAND 
+
+#COMMAND end_for_each 
+        Get NextItem of hNew_!u to isOK_!u
+    Loop
+    Send Destroy to (hNew_!u)
+    #POP U$
+#ENDCOMMAND 
+
+Enum_List
+    Define rtAsRecnum
+    Define rtAsRowID
+End_Enum_List
+
+Class cDataDictionaryIterator is a cObject
+    Procedure construct_object 
+        Forward Send construct_object 
+        Property Integer phDD 
+        Property Integer piIndex
+    End_Procedure
+    
+    Procedure InitialiseObject Integer hDD Integer iIndex 
+        Set phDD to hDD 
+        Set piIndex to iIndex 
+    End_Procedure
+
+    Function NextItem Returns Boolean
+        Send Request_Find to (phDD(Self)) GT (Main_File(phDD(Self))) (piIndex(Self))
+        Function_Return (Found)
+    End_Function 
+    
+    Function FirstItem Returns Boolean
+        Send Request_Clear to (phDD(Self)) 
+        Send Request_Find to (phDD(Self)) GT (Main_File(phDD(Self))) (piIndex(Self))
+        Function_Return (Found)
+    End_Function 
+    
+    Function ItemValue Returns Variant
+        Function_Return (CurrentRowId(phDD(Self)))
+    End_Function
+
+End_Class
+
+Class cDataDictionaryRecnumIterator is a cDataDictionaryIterator
+    Function ItemValue Returns Variant
+        Function_Return (Current_Record(phDD(Self)))
+    End_Function
+End_Class
+
+
+Class cStringCharIterator is a cIterator
+    Procedure construct_object 
+        Forward Send Construct_Object
+        Property Char[] psOutput
+        Property Integer piPos
+    End_Procedure
+
+    Procedure InitialiseObject String sInp 
+        Char[] myCharArray
+        Address pStr
+        Integer iMax
+        
+        Move (Length(sInp)) to iMax
+        Move (ResizeArray(myCharArray,iMax+1)) to myCharArray
+        Move (AddressOf(myCharArray)) to pStr
+        Move sInp to pStr
+        Set psOutput to myCharArray
+    End_Procedure
+
+    Function NextItem Returns Boolean
+        Integer iLength 
+        Integer iPos 
+        
+        Get piPos to iPos 
+        Move (SizeOfArray(psOutput(Self))) to iLength 
+        
+        If (iPos>=(iLength-1)) Begin 
+            Function_Return (False) 
+        End
+        Else Begin
+            Set piPos to (iPos+1) 
+            Function_Return (True) 
+        End 
+    End_Function 
+    
+    Function FirstItem Returns Boolean
+        Set piPos to 1 
+        Function_Return ((SizeOfArray(psOutput(Self)))<>0)
+    End_Function 
+    
+    Function ItemValue Returns String 
+        Char[] sTmp 
+        Get psOutput to sTmp 
+        Function_Return (Character(sTmp[(piPos(Self))-1]))
+    End_Function
+End_Class
+
+Class cTextFileIterator is a cIterator
+    Procedure construct_object 
+        Forward Send construct_object 
+        Property Integer piChannel
+        Property String psName 
+        Property Boolean pisOpened 
+        Property Boolean pisFinished
+        Property String psCurrentLine 
+    End_Procedure
+
+    Procedure InitialiseObject String sName 
+        Integer iChannel 
+        Move (Seq_New_Channel()) to iChannel 
+        Set piChannel to iChannel 
+        Set psName to sName 
+        Set pisOpened to False 
+    End_Procedure
+
+    Function NextItem Returns Boolean
+        String sTmp 
+        If (pisFinished(Self)) Function_Return (False) 
+
+        Readln sTmp 
+        If (SeqEof) Set pisFinished to (True) 
+        Set psCurrentLine to sTmp 
+
+        Function_Return ( (not(pisFinished(Self))) or (sTmp<>"") )
+    End_Function 
+
+    Function FirstItem Returns Boolean
+        Boolean isOK 
+        If (pisOpened(Self)) Close_Output channel (piChannel(Self))
+        File_Exist (psName(Self)) isOK 
+        If (not(isOK)) Function_Return (False) 
+        
+        Set pisFinished to False 
+        Direct_Input channel (piChannel(Self)) (psName(Self)) 
+        Function_Return (NextItem(Self))
+    End_Function 
+    
+    Function ItemValue Returns Variant
+        Function_Return (psCurrentLine(Self)) 
+    End_Function
+    
+    Procedure Destroy_Object
+        Integer iChannel 
+        
+        Get piChannel to iChannel 
+        Send Seq_Release_Channel iChannel 
+        
+        Forward Send Destroy_Object 
+    End_Procedure
+End_Class
+
+Class cArrayIterator is a cObject
+    Procedure construct_object 
+        Forward Send construct_object 
+        Property Variant[] paList
+        Property Variant paReturn 
+        Property Integer piItem 
+    End_Procedure
+
+    Procedure InitialiseObject Variant[] aList 
+        Set paList to aList 
+    End_Procedure
+
+    Function NextItem Returns Boolean
+        Integer iItem 
+        Variant[] aList
+
+        Get paList to aList 
+        Get piItem to iItem 
+        
+        If (iItem >= (SizeOfArray(aList))) Function_Return False 
+        
+        Set paReturn to aList[iItem]
+        Set piItem to (iItem+1) 
+        
+        Function_Return True 
+    End_Function 
+    
+    Function FirstItem Returns Boolean
+        Variant[] aList
+        Get paList to aList 
+        Set piItem to 1 
+        
+        If ((SizeOfArray(aList)) = 0) Function_Return (False) 
+        
+        Set paReturn to aList[0]
+        Function_Return True 
+    End_Function 
+    
+    Function ItemValue Returns Variant
+        Function_Return (paReturn(Self))
+    End_Function
+
+    Procedure Destroy_Object
+        Forward Send Destroy_Object 
+    End_Procedure
+End_Class
+
+Class cQueuedDataDictionaryIterator is a cIterator
+    Procedure construct_object 
+        Forward Send construct_object 
+        Property Integer phDD 
+        Property Integer piIndex 
+        Property RowID[] paRows
+        Property RowID priReturn 
+        Property Integer piItem 
+    End_Procedure
+    
+    Procedure InitialiseObject Integer hDD Integer iIndex 
+        RowID[] aRows
+        RowID riRow
+        Integer iPos 
+        
+        Set phDD to hDD 
+        Set piIndex to iIndex
+        
+        Move 0 to iPos 
+        Send Request_Clear to (phDD(Self)) 
+        Send Request_Find to (phDD(Self)) GT (Main_File(phDD(Self))) (piIndex(Self))
+        While (Found)
+            Move (CurrentRowId(phDD(Self))) to riRow 
+            Move (&riRow) to aRows[iPos]
+            
+            Move (iPos+1) to iPos 
+            Send Request_Find to (phDD(Self)) GT (Main_File(phDD(Self))) (piIndex(Self))
+        Loop
+        
+        Set paRows to aRows 
+    End_Procedure
+    
+    Function NextItem Returns Boolean
+        Integer iItem 
+        RowID[] aRows
+
+        Get paRows to aRows 
+        Get piItem to iItem 
+        
+        If (iItem >= (SizeOfArray(aRows))) Function_Return False 
+        
+        Set priReturn to aRows[iItem]
+        Set piItem to (iItem+1) 
+        
+        Function_Return True 
+    End_Function 
+    
+    Function FirstItem Returns Boolean
+        RowID[] aRows
+        Get paRows to aRows 
+        Set piItem to 1 
+        
+        If ((SizeOfArray(aRows)) = 0) Function_Return (False) 
+        
+        Set priReturn to aRows[0]
+        Function_Return True 
+    End_Function 
+
+    Function ItemValue Returns RowID
+        RowID riRow 
+        
+        Move (priReturn(Self)) to riRow 
+        Send FindByRowId to (phDD(Self)) (Main_File(phDD(Self))) riRow 
+        
+        Function_Return riRow 
+    End_Function
+    
+End_Class
+
+

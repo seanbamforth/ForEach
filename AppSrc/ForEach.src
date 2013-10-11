@@ -1,0 +1,76 @@
+Use Windows.pkg
+Use cHtmlHelp.pkg
+Use cApplication.pkg
+Use cWorkspace.pkg
+
+Object oHtmlHelp is a cHtmlHelp
+End_Object
+
+Object oApplication is a cApplication
+    Set pbPreserveEnvironment to False
+    Set peHelpType to htHtmlHelp
+End_Object
+
+Use for_each.pkg
+Use cTestDataDictionary.dd
+
+Object oTest is a cObject
+    Object oTest_DD is a cTestDataDictionary
+    End_Object 
+    
+    Procedure Demonstrate_freach
+        String sPos 
+        Integer iRecnum 
+        RowID riRow
+        Variant[] aList 
+        
+        Showln "For each character in a string"
+        Showln "==========================================="
+        for_each StringChar sPos in "This is a string" 
+           Show sPos "-"
+        end_for_each 
+        Showln ""
+        Showln ""
+        
+        Showln "Data Dictionary - index.2"
+        Showln "==========================================="
+        for_each DataDictionary riRow in (oTest_DD(Self)) Index.2
+            Showln (SerializeRowID(riRow)) ":" Test.Description
+        end_for_each 
+        Showln ""
+        
+        Showln "Queued Data Dictionary - index.2"
+        Showln "Doesn't matter if we lose our place with clear or saves"
+        Showln "==========================================="
+        for_each QueuedDataDictionary riRow in (oTest_DD(Self)) Index.2
+            Showln (SerializeRowID(riRow)) ":" Test.Description
+            Send Request_Clear to oTest_DD
+            Clear Test
+        end_for_each 
+        Showln ""
+        
+        String sFile 
+        Move ((psDataPath(phoWorkspace(oApplication))) + "\test.txt") to sFile 
+        Showln "Text file"
+        Showln "==========================================="
+        for_each TextFile sPos in sFile  "test.txt"
+           Showln sPos 
+        end_for_each 
+        Showln ""
+        
+        Showln "Array - we populate an array, then use for_each"
+        Showln "==========================================="
+        Move "hello" to aList[0]
+        Move "world" to aList[1]
+        for_each array sPos in aList 
+           Showln sPos 
+        end_for_each 
+    End_Procedure
+    Send Demonstrate_freach
+End_Object
+
+Object oPanel is a BasicPanel
+    Set Size to 100 100 
+    Set Label to "Demonstarting the iterator"
+End_Object
+Start_UI oPanel 
