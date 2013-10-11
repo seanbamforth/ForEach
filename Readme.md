@@ -22,6 +22,7 @@ e.g.
 ```
     
 for_each types available : 
+===================
 
   - DataDictionary - All records in DataDictionary 
   - DataDictionaryRecnum - All records in DataDictionary. Return Recnum, not RowID 
@@ -31,6 +32,7 @@ for_each types available :
   - QueuedDataDictionary - All records in DataDictionary. Doesn't lose position if cursor changes. 
 
 Creating your own iterator. 
+===================
 To create your own for_each iterator, you need to do the following. 
 
 1. Subclass cIterator. 
@@ -85,7 +87,8 @@ We use DestroyObject Rarely, but we use it. (See cTextFileIterator)
     End_Procedure
 ```
 
-3. Use it.
+Using it.
+===================
 
 
 ```
