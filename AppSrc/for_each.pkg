@@ -42,7 +42,7 @@ Function CreateObject for cObject Integer hClass Variant v1 Variant v2 Variant v
     Function_Return hObj 
 End_Function
 
-#COMMAND for_each R R IN R 
+#COMMAND for_each R R IN R
     #PUSH !u
     #SET U$ !a
     
@@ -51,22 +51,75 @@ End_Function
     #IF (!0 = 4)
         Get CreateObject U_c!1Iterator !4 to hNew_!u
     #ENDIF 
+    
+    
     #IF (!0 = 5)
-        Get CreateObject U_c!1Iterator !4 !5 to hNew_!u
+        #IFSAME !5 DO
+            Get CreateObject U_c!1Iterator !4 to hNew_!u
+            MAKEDEF$ FAQ!u.X
+        #ELSE
+            Get CreateObject U_c!1Iterator !4 !5 to hNew_!u
+        #ENDIF 
     #ENDIF 
+    
     #IF (!0 = 6)
-        Get CreateObject U_c!1Iterator !4 !5 !6 to hNew_!u
-    #ENDIF 
+        #IFSAME !6 DO
+            Get CreateObject U_c!1Iterator !4 !5 to hNew_!u
+            MAKEDEF$ FAQ!u.X
+        #ELSE
+            Get CreateObject U_c!1Iterator !4 !5 !6 to hNew_!u
+        #ENDIF 
+    #ENDIF
 
-    Get FirstItem of hNew_!u to isOK_!u
-    While (isOK_!u)
+    #IF (!0 = 7)
+        #IFSAME !7 DO
+            Get CreateObject U_c!1Iterator !4 !5 !6 to hNew_!u
+            MAKEDEF$ FAQ!u.X
+        #ELSE
+            Get CreateObject U_c!1Iterator !4 !5 !6 to hNew_!u
+        #ENDIF 
+    #ENDIF
+
+    Goto JMP_END_!u
+    
+    JMP_SET_!u:
         Get ItemValue of hNew_!u to !2
+    gosub_return 
+
+    #IFDEF FAQ!u.X
+        JMP_LOOP_!u:
+    #ELSE
+        JMP_CONSTRAIN_!u:
+    #ENDIF 
+#ENDCOMMAND
+
+#COMMAND AND_DO
+    gosub_return 
+    JMP_LOOP_!u:
 #ENDCOMMAND 
 
 #COMMAND end_for_each 
+    gosub_return 
+    JMP_END_!u:
+    
+    //we have the gosubs set up - we can now do the loop
+    #IFNDEF FAQ!u.X
+        Constraint_Set (|CI!u * -1)
+        gosub JMP_CONSTRAIN_!u
+    #ENDIF
+    
+    Get FirstItem of hNew_!u to isOK_!u
+    While (isOK_!u)
+        Gosub JMP_SET_!u
+        Gosub JMP_LOOP_!u
         Get NextItem of hNew_!u to isOK_!u
     Loop
     Send Destroy to (hNew_!u)
+
+    #IFNDEF FAQ!u.X
+        Constraint_Set (|CI!u * -1) Delete
+    #ENDIF
+
     #POP U$
 #ENDCOMMAND 
 
@@ -328,4 +381,30 @@ Class cQueuedDataDictionaryIterator is a cIterator
     
 End_Class
 
+Class cDataFileIterator is a cIterator
+    Procedure construct_object 
+        Forward Send construct_object 
+        Property Integer phFileNumber
+        Property Integer piIndex
+    End_Procedure
+    
+    Procedure InitialiseObject Integer hFile Integer iIndex 
+        Set phFileNumber to hFile 
+        Set piIndex to iIndex 
+    End_Procedure
 
+    Function NextItem Returns Boolean
+        Constrained_Find gt (phFileNumber(Self)) by (piIndex(Self))
+        Function_Return (Found)
+    End_Function 
+    
+    Function FirstItem Returns Boolean
+        Constrained_Clear GE (phFileNumber(Self)) by (piIndex(Self))
+        Constrained_Find First (phFileNumber(Self)) by (piIndex(Self))
+        Function_Return (Found)
+    End_Function 
+    
+    Function ItemValue Returns Variant
+        Function_Return (GetRowId( (phFileNumber(Self)) ))
+    End_Function
+End_Class

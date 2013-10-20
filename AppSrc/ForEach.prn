@@ -1,5 +1,5 @@
 Compiling Program: C:\data\VDF\ForEach\AppSrc\ForEach.src
-Memory Available: 1493852159
+Memory Available: 2147483647
 1>Use Windows.pkg
 Using pre-compiled package WINDOWS.PKG
 Including file: windows.pkd    (C:\Program Files (x86)\Visual DataFlex 17.1\Pkg\windows.pkd)
@@ -2901,6 +2901,7 @@ Including file: Dferror.pkg    (C:\Program Files (x86)\Visual DataFlex 17.1\Pkg\
 8618>
 8618>Object oHtmlHelp is a cHtmlHelp
 8620>End_Object
+8621>
 8621>
 8621>Object oApplication is a cApplication
 8623>    Set pbPreserveEnvironment to False
@@ -10955,6 +10956,7 @@ __
 13303>>>
 13303>>>
 13303>>>
+13303>>>
 13303>>>Enum_List
 13303>>>    Define rtAsRecnum
 13303>>>    Define rtAsRowID
@@ -11216,99 +11218,143 @@ __
 13540>>>    
 13540>>>End_Class
 13541>>>
-13541>>>
-13541>Use cTestDataDictionary.dd
-Including file: cTestDataDictionary.dd    (C:\data\VDF\ForEach\DDSrc\cTestDataDictionary.dd)
-13541>>>Use Datadict.pkg
-13541>>>
-13541>>>Open Test
-Including file: Test.fd    (C:\data\VDF\ForEach\DDSrc\Test.fd)
-13543>>>
-13543>>>Class cTestDataDictionary is a DataDictionary
-13544>>>    
-13544>>>    Procedure Construct_Object
-13546>>>        Forward Send Construct_Object
-13548>>>        Set Main_File to Test.File_Number
-13549>>>
-13549>>>        Set Foreign_Field_Option DD_KEYFIELD DD_NOPUT to True
-13550>>>        Set Foreign_Field_Option DD_KEYFIELD DD_FINDREQ to True
-13551>>>        Set Foreign_Field_Option DD_INDEXFIELD DD_NOPUT to True
-13552>>>        Set Foreign_Field_Option DD_DEFAULT DD_DISPLAYONLY to True
-13553>>>
+13541>>>Class cDataFileIterator is a cIterator
+13542>>>    Procedure construct_object 
+13544>>>        Forward Send construct_object 
+13546>>>        Property Integer phFileNumber
+13547>>>        Property Integer piIndex
+13548>>>    End_Procedure
+13549>>>    
+13549>>>    Procedure InitialiseObject Integer hFile Integer iIndex 
+13551>>>        Set phFileNumber to hFile 
+13552>>>        Set piIndex to iIndex 
 13553>>>    End_Procedure
 13554>>>
-13554>>>End_Class
-13555>
-13555>Object oTest is a cObject
-13557>    Object oTest_DD is a cTestDataDictionary
-13559>    End_Object 
-13560>    
-13560>    Procedure Demonstrate_freach
-13563>        String sPos 
-13563>        Integer iRecnum 
-13563>        RowID riRow
-13563>        Variant[] aList 
-13564>        
-13564>        Showln "For each character in a string"
-13566>        Showln "==========================================="
-13568>        for_each StringChar sPos in "This is a string" 
-13575>           Show sPos "-"
-13577>        end_for_each 
-13580>        Showln ""
-13582>        Showln ""
-13584>        
-13584>        Showln "Data Dictionary - index.2"
-13586>        Showln "==========================================="
-13588>        for_each DataDictionary riRow in (oTest_DD(Self)) Index.2
-13595>            Showln (SerializeRowID(riRow)) ":" Test.Description
-13599>        end_for_each 
-13602>        Showln ""
-13604>        
-13604>        Showln "Queued Data Dictionary - index.2"
-13606>        Showln "Doesn't matter if we lose our place with clear or saves"
-13608>        Showln "==========================================="
-13610>        for_each QueuedDataDictionary riRow in (oTest_DD(Self)) Index.2
-13617>            Showln (SerializeRowID(riRow)) ":" Test.Description
-13621>            Send Request_Clear to oTest_DD
-13622>            Clear Test
-13623>        end_for_each 
-13626>        Showln ""
-13628>        
-13628>        String sFile 
-13628>        Move ((psDataPath(phoWorkspace(oApplication))) + "\test.txt") to sFile 
-13629>        Showln "Text file"
-13631>        Showln "==========================================="
-13633>        for_each TextFile sPos in sFile  "test.txt"
-13640>           Showln sPos 
-13642>        end_for_each 
-13645>        Showln ""
-13647>        
-13647>        Showln "Array - we populate an array, then use for_each"
-13649>        Showln "==========================================="
-13651>        Move "hello" to aList[0]
-13652>        Move "world" to aList[1]
-13653>        for_each array sPos in aList 
-13660>           Showln sPos 
-13662>        end_for_each 
-13665>    End_Procedure
-13666>    Send Demonstrate_freach
-13667>End_Object
-13668>
-13668>Object oPanel is a BasicPanel
-13670>    Set Size to 100 100 
-13671>    Set Label to "Demonstarting the iterator"
-13672>End_Object
-13673>Start_UI oPanel 
-13675>
+13554>>>    Function NextItem Returns Boolean
+13556>>>        Constrained_Find gt (phFileNumber(Self)) by (piIndex(Self))
+13560>>>        Function_Return (Found)
+13561>>>    End_Function 
+13562>>>    
+13562>>>    Function FirstItem Returns Boolean
+13564>>>        Constrained_Clear GE (phFileNumber(Self)) by (piIndex(Self))
+13567>>>        Constrained_Find First (phFileNumber(Self)) by (piIndex(Self))
+13572>>>        Function_Return (Found)
+13573>>>    End_Function 
+13574>>>    
+13574>>>    Function ItemValue Returns Variant
+13576>>>        Function_Return (GetRowId( (phFileNumber(Self)) ))
+13577>>>    End_Function
+13578>>>End_Class
+13579>Use cTestDataDictionary.dd
+Including file: cTestDataDictionary.dd    (C:\data\VDF\ForEach\DDSrc\cTestDataDictionary.dd)
+13579>>>Use Datadict.pkg
+13579>>>
+13579>>>Open Test
+Including file: Test.fd    (C:\data\VDF\ForEach\DDSrc\Test.fd)
+13581>>>
+13581>>>Class cTestDataDictionary is a DataDictionary
+13582>>>    
+13582>>>    Procedure Construct_Object
+13584>>>        Forward Send Construct_Object
+13586>>>        Set Main_File to Test.File_Number
+13587>>>
+13587>>>        Set Foreign_Field_Option DD_KEYFIELD DD_NOPUT to True
+13588>>>        Set Foreign_Field_Option DD_KEYFIELD DD_FINDREQ to True
+13589>>>        Set Foreign_Field_Option DD_INDEXFIELD DD_NOPUT to True
+13590>>>        Set Foreign_Field_Option DD_DEFAULT DD_DISPLAYONLY to True
+13591>>>
+13591>>>    End_Procedure
+13592>>>
+13592>>>End_Class
+13593>
+13593>Object oTest is a cObject
+13595>    Object oTest_DD is a cTestDataDictionary
+13597>    End_Object 
+13598>    
+13598>    Procedure Demonstrate_freach
+13601>        String sPos 
+13601>        Integer iRecnum 
+13601>        RowID riRow
+13601>        Variant[] aList 
+13602>        
+13602>        Showln "For each character in a string"
+13604>        Showln "==========================================="
+13606>        for_each StringChar sPos in "This is a string" 
+13610>            Showln "we'll be constraining here"
+13612>        And_Do
+13613>           Show sPos "-"
+13615>        end_for_each 
+13629>
+13629>        Showln ""
+13631>        Showln ""
+13633>        
+13633>        Showln "Data Dictionary - index.2"
+13635>        Showln "==========================================="
+13637>        for_each DataDictionary riRow in (oTest_DD(Self)) Index.2  DO
+13641>            Showln (SerializeRowID(riRow)) ":" Test.Description
+13645>        end_for_each 
+13656>        Showln ""
+13658>        
+13658>        Showln "For data files = index.2"
+13660>        for_each DataFile riRow in test.file_number Index.2  DO
+13664>            Showln (SerializeRowID(riRow)) ":" Test.Description
+13668>        end_for_each 
+13679>        Showln ""
+13681>        
+13681>        Showln "For data files = index.2 - constrained > S"
+13683>        for_each DataFile riRow in test.file_number Index.2  
+13687>            showln "first we constrain"
+13689>            Constrain Test.Description gt "S"
+13691>        AND_DO
+13692>            Showln (SerializeRowID(riRow)) ":" Test.Description
+13696>        end_for_each 
+13710>        Showln ""
+13712>        
+13712>        Showln "Queued Data Dictionary - index.2"
+13714>        Showln "Doesn't matter if we lose our place with clear or saves"
+13716>        Showln "==========================================="
+13718>        for_each QueuedDataDictionary riRow in (oTest_DD(Self)) Index.2  DO
+13722>            Showln (SerializeRowID(riRow)) ":" Test.Description
+13726>            Send Request_Clear to oTest_DD
+13727>            Clear Test
+13728>        end_for_each 
+13739>        Showln ""
+13741>        
+13741>        String sFile 
+13741>        Move ((psDataPath(phoWorkspace(oApplication))) + "\test.txt") to sFile 
+13742>        Showln "Text file"
+13744>        Showln "==========================================="
+13746>        for_each TextFile sPos in sFile  "test.txt"  DO
+13750>           Showln sPos 
+13752>        end_for_each 
+13763>        Showln ""
+13765>        
+13765>        Showln "Array - we populate an array, then use for_each"
+13767>        Showln "==========================================="
+13769>        Move "hello" to aList[0]
+13770>        Move "world" to aList[1]
+13771>        for_each array sPos in aList  DO
+13775>           Showln sPos 
+13777>        end_for_each 
+13788>    End_Procedure
+13789>    Send Demonstrate_freach
+13790>End_Object
+13791>
+13791>Object oPanel is a BasicPanel
+13793>    Set Size to 100 100 
+13794>    Set Label to "Demonstarting the iterator"
+13795>End_Object
+13796>Start_UI oPanel 
+13798>
 Summary
-Memory Available: 1474404351
+Memory Available: 2147483647
 Total Warnings : 0
 Total Errors   : 0
-Total Symbols  : 11708
+Total Symbols  : 11757
 Total Resources: 0
-Total Commands : 13674
+Total Commands : 13797
 Total Windows  : 1
 Total Pages    : 1
-Static Data    : 102325
-Message area   : 75894
-Total Blocks   : 6198
+Static Data    : 102917
+Message area   : 76209
+Total Blocks   : 6233

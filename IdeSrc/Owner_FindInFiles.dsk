@@ -1,6 +1,6 @@
 [Header]
 Mask=*.src;*.vw;*.sl;*.dg;*.rv;*.bp;*.pkg;*.wo;*.dd;*.inc;*.tpl;*.dfo;*.asp;*.asa;*.htm;*.html;*.css;*.js
-Active=0
+Active=1
 SubDirectories=1
 WholeWordOnly=0
 SearchWhere=0
@@ -10,4 +10,6 @@ IsEnabled=1
 [C:\data\VDF\ForEach\DdSrc]
 IsEnabled=1
 [C:\data\VDF\ForEach\AppHtml]
+IsEnabled=1
+[C:\Program Files (x86)\Visual DataFlex 17.1\pkg]
 IsEnabled=1

@@ -6,6 +6,7 @@ Use cWorkspace.pkg
 Object oHtmlHelp is a cHtmlHelp
 End_Object
 
+
 Object oApplication is a cApplication
     Set pbPreserveEnvironment to False
     Set peHelpType to htHtmlHelp
@@ -27,14 +28,31 @@ Object oTest is a cObject
         Showln "For each character in a string"
         Showln "==========================================="
         for_each StringChar sPos in "This is a string" 
+            Showln "we'll be constraining here"
+        And_Do
            Show sPos "-"
         end_for_each 
+
         Showln ""
         Showln ""
         
         Showln "Data Dictionary - index.2"
         Showln "==========================================="
-        for_each DataDictionary riRow in (oTest_DD(Self)) Index.2
+        for_each DataDictionary riRow in (oTest_DD(Self)) Index.2  DO
+            Showln (SerializeRowID(riRow)) ":" Test.Description
+        end_for_each 
+        Showln ""
+        
+        Showln "For data files = index.2"
+        for_each DataFile riRow in test.file_number Index.2  DO
+            Showln (SerializeRowID(riRow)) ":" Test.Description
+        end_for_each 
+        Showln ""
+        
+        Showln "For data files = index.2 - constrained > S"
+        for_each DataFile riRow in test.file_number Index.2  
+            Constrain Test.Description gt "S"
+        AND_DO
             Showln (SerializeRowID(riRow)) ":" Test.Description
         end_for_each 
         Showln ""
@@ -42,7 +60,7 @@ Object oTest is a cObject
         Showln "Queued Data Dictionary - index.2"
         Showln "Doesn't matter if we lose our place with clear or saves"
         Showln "==========================================="
-        for_each QueuedDataDictionary riRow in (oTest_DD(Self)) Index.2
+        for_each QueuedDataDictionary riRow in (oTest_DD(Self)) Index.2  DO
             Showln (SerializeRowID(riRow)) ":" Test.Description
             Send Request_Clear to oTest_DD
             Clear Test
@@ -53,7 +71,7 @@ Object oTest is a cObject
         Move ((psDataPath(phoWorkspace(oApplication))) + "\test.txt") to sFile 
         Showln "Text file"
         Showln "==========================================="
-        for_each TextFile sPos in sFile  "test.txt"
+        for_each TextFile sPos in sFile  "test.txt"  DO
            Showln sPos 
         end_for_each 
         Showln ""
@@ -62,7 +80,7 @@ Object oTest is a cObject
         Showln "==========================================="
         Move "hello" to aList[0]
         Move "world" to aList[1]
-        for_each array sPos in aList 
+        for_each array sPos in aList  DO
            Showln sPos 
         end_for_each 
     End_Procedure
