@@ -1,13 +1,15 @@
 for_each
 ===================
-
  - For Visual Dataflex
  - By Sean Bamforth 
 
 
 Usage:
 ```
-    for_each {type} {variable} in {parameter1:optional} {parameter2:optional} {parameter3:optional} {parameter4:optional} 
+    for_each {type} {variable} in {parameter1:optional} {parameter2:optional} {parameter3:optional} {parameter4:optional} [DO]
+        [optional constraints]
+    [and_do]
+        [commands]
     end_for_each
 ```
 
@@ -15,11 +17,26 @@ e.g.
 ```
     Showln "Data Dictionary - index.2"
     Showln "==========================================="
-    for_each DataDictionary riRow in (oTest_DD(Self)) Index.2
+    for_each DataDictionary riRow in (oTest_DD(Self)) Index.2 DO
         Showln (SerializeRowID(riRow)) ":" Test.Description
     end_for_each 
     Showln ""
 ```
+
+Datafiles can also be run with inline constraints (using the and_do) construct: 
+e.g. 
+```
+    Showln "DataFile - index.2, all with desc > S"
+    Showln "==========================================="
+    for_each DataFile riRow in test.file_number Index.2 
+        constrain test.description gt "S"
+    and_do
+        Showln (SerializeRowID(riRow)) ":" Test.Description
+    end_for_each 
+    Showln ""
+```
+
+
     
 for_each types available : 
 ===================
@@ -29,6 +46,7 @@ for_each types available :
   - StringChar - All characters in a string 
   - TextFile - All Lines in a File 
   - Array - All items in an Array (Don't know how welll this works)
+  - DataFile - Plain old datafile. But with ability to add constraints. Returns RowID
   - QueuedDataDictionary - All records in DataDictionary. Doesn't lose position if cursor changes. 
 
 Creating your own iterator. 
@@ -93,7 +111,7 @@ Using it.
 
 ```
     integer iCount
-    for_each Range iCount in 100 150 
+    for_each Range iCount in 100 150 DO
         showln iCount 
     end_for_each 
 ```
