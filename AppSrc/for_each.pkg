@@ -226,7 +226,7 @@ Class cTextFileIterator is a cIterator
         Move (Seq_New_Channel()) to iChannel 
         Set piChannel to iChannel 
         Set psName to sName 
-        Set pisOpened to False 
+        Set pisOpened to False   
     End_Procedure
 
     Function NextItem Returns Boolean
@@ -236,7 +236,11 @@ Class cTextFileIterator is a cIterator
         Readln sTmp 
         If (SeqEof) Set pisFinished to (True) 
         Set psCurrentLine to sTmp 
-
+        
+        If (pisFinished(Self)) Begin 
+            Close_Output channel (piChannel(Self))
+            Set pisFinished to True 
+        End
         Function_Return ( (not(pisFinished(Self))) or (sTmp<>"") )
     End_Function 
 
@@ -248,6 +252,7 @@ Class cTextFileIterator is a cIterator
         
         Set pisFinished to False 
         Direct_Input channel (piChannel(Self)) (psName(Self)) 
+        Set pisOpened to True 
         Function_Return (NextItem(Self))
     End_Function 
     
